@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// UNSUPPORTED: c++98, c++03, c++11
+// UNSUPPORTED: c++98, c++03, c++11, nvrtc
 
 // XFAIL: nvcc
 // FIXME: Triage and fix this.
