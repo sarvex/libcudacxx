@@ -33,10 +33,10 @@
 
 _LIBCUDACXX_BEGIN_NAMESPACE_STD
 
-#if __has_builtin(__make_signed)
+#if defined(_LIBCUDACXX_MAKE_SIGNED) && !defined(_LIBCUDACXX_USE_MAKE_SIGNED_FALLBACK)
 
 template <class _Tp>
-using __make_signed_t = __make_signed(_Tp);
+using __make_signed_t = _LIBCUDACXX_MAKE_SIGNED(_Tp);
 
 #else
 typedef
@@ -80,7 +80,7 @@ template <> struct __make_signed<__uint128_t,        true> {typedef __int128_t t
 template <class _Tp>
 using __make_signed_t = typename __apply_cv<_Tp, typename __make_signed<__remove_cv_t<_Tp> >::type>::type;
 
-#endif // __has_builtin(__make_signed)
+#endif // defined(_LIBCUDACXX_MAKE_SIGNED) && !defined(_LIBCUDACXX_USE_MAKE_SIGNED_FALLBACK)
 
 template <class _Tp>
 struct make_signed {

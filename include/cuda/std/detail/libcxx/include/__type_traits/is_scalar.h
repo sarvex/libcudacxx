@@ -33,17 +33,19 @@
 
 _LIBCUDACXX_BEGIN_NAMESPACE_STD
 
-#if __has_builtin(__is_scalar)
+#if defined(_LIBCUDACXX_IS_SCALAR) && !defined(_LIBCUDACXX_USE_IS_SCALAR_FALLBACK)
 
 template<class _Tp>
-struct _LIBCUDACXX_TEMPLATE_VIS is_scalar : _BoolConstant<__is_scalar(_Tp)> { };
+struct _LIBCUDACXX_TEMPLATE_VIS is_scalar 
+    : public integral_constant<bool, _LIBCUDACXX_IS_SCALAR(_Tp)> 
+    {};
 
 #if _LIBCUDACXX_STD_VER > 11 && !defined(_LIBCUDACXX_HAS_NO_VARIABLE_TEMPLATES)
 template <class _Tp>
-_LIBCUDACXX_INLINE_VAR constexpr bool is_scalar_v = __is_scalar(_Tp);
+_LIBCUDACXX_INLINE_VAR constexpr bool is_scalar_v = _LIBCUDACXX_IS_SCALAR(_Tp);
 #endif
 
-#else // __has_builtin(__is_scalar)
+#else
 
 template <class _Tp> struct __is_block : false_type {};
 #if defined(_LIBCUDACXX_HAS_EXTENSION_BLOCKS)
@@ -65,7 +67,7 @@ template <class _Tp>
 _LIBCUDACXX_INLINE_VAR constexpr bool is_scalar_v = is_scalar<_Tp>::value;
 #endif
 
-#endif // __has_builtin(__is_scalar)
+#endif // defined(_LIBCUDACXX_IS_SCALAR) && !defined(_LIBCUDACXX_USE_IS_SCALAR_FALLBACK)
 
 _LIBCUDACXX_END_NAMESPACE_STD
 

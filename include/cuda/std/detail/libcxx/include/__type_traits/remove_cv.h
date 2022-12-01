@@ -25,21 +25,24 @@
 
 _LIBCUDACXX_BEGIN_NAMESPACE_STD
 
-#if __has_builtin(__remove_cv)
+#if defined(_LIBCUDACXX_REMOVE_CV) && !defined(_LIBCUDACXX_USE_REMOVE_CV_FALLBACK)
 template <class _Tp>
 struct remove_cv {
-  using type _LIBCUDACXX_NODEBUG = __remove_cv(_Tp);
+  using type _LIBCUDACXX_NODEBUG = _LIBCUDACXX_REMOVE_CV(_Tp);
 };
 
 template <class _Tp>
-using __remove_cv_t = __remove_cv(_Tp);
+using __remove_cv_t = _LIBCUDACXX_REMOVE_CV(_Tp);
+
 #else
+
 template <class _Tp> struct _LIBCUDACXX_TEMPLATE_VIS remove_cv
 {typedef __remove_volatile_t<__remove_const_t<_Tp> > type;};
 
 template <class _Tp>
 using __remove_cv_t = __remove_volatile_t<__remove_const_t<_Tp> >;
-#endif // __has_builtin(__remove_cv)
+
+#endif // defined(_LIBCUDACXX_REMOVE_CV) && !defined(_LIBCUDACXX_USE_REMOVE_CV_FALLBACK)
 
 #if _LIBCUDACXX_STD_VER > 11
 template <class _Tp> using remove_cv_t = __remove_cv_t<_Tp>;

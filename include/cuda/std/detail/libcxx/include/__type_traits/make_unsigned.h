@@ -37,10 +37,10 @@
 
 _LIBCUDACXX_BEGIN_NAMESPACE_STD
 
-#if __has_builtin(__make_unsigned)
+#if defined(_LIBCUDACXX_MAKE_UNSIGNED) && !defined(_LIBCUDACXX_USE_MAKE_UNSIGNED_FALLBACK)
 
 template <class _Tp>
-using __make_unsigned_t = __make_unsigned(_Tp);
+using __make_unsigned_t = _LIBCUDACXX_MAKE_UNSIGNED(_Tp);
 
 #else
 typedef
@@ -84,7 +84,7 @@ template <> struct __make_unsigned<__uint128_t,        true> {typedef __uint128_
 template <class _Tp>
 using __make_unsigned_t = typename __apply_cv<_Tp, typename __make_unsigned<__remove_cv_t<_Tp> >::type>::type;
 
-#endif // __has_builtin(__make_unsigned)
+#endif // defined(_LIBCUDACXX_MAKE_UNSIGNED) && !defined(_LIBCUDACXX_USE_MAKE_UNSIGNED_FALLBACK)
 
 template <class _Tp>
 struct make_unsigned {

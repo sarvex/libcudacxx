@@ -27,17 +27,19 @@
 
 _LIBCUDACXX_BEGIN_NAMESPACE_STD
 
-#if __has_builtin(__is_fundamental)
+#if defined(_LIBCUDACXX_IS_FUNDAMENTAL) && !defined(_LIBCUDACXX_USE_IS_FUNDAMENTAL_FALLBACK)
 
 template<class _Tp>
-struct _LIBCUDACXX_TEMPLATE_VIS is_fundamental : _BoolConstant<__is_fundamental(_Tp)> { };
+struct _LIBCUDACXX_TEMPLATE_VIS is_fundamental 
+    : public integral_constant<bool, _LIBCUDACXX_IS_FUNDAMENTAL(_Tp)> 
+    {};
 
 #if _LIBCUDACXX_STD_VER > 11 && !defined(_LIBCUDACXX_HAS_NO_VARIABLE_TEMPLATES)
 template <class _Tp>
-_LIBCUDACXX_INLINE_VAR constexpr bool is_fundamental_v = __is_fundamental(_Tp);
+_LIBCUDACXX_INLINE_VAR constexpr bool is_fundamental_v = _LIBCUDACXX_IS_FUNDAMENTAL(_Tp);
 #endif
 
-#else // __has_builtin(__is_fundamental)
+#else
 
 template <class _Tp> struct _LIBCUDACXX_TEMPLATE_VIS is_fundamental
     : public integral_constant<bool, is_void<_Tp>::value        ||
@@ -49,7 +51,7 @@ template <class _Tp>
 _LIBCUDACXX_INLINE_VAR constexpr bool is_fundamental_v = is_fundamental<_Tp>::value;
 #endif
 
-#endif // __has_builtin(__is_fundamental)
+#endif // defined(_LIBCUDACXX_IS_FUNDAMENTAL) && !defined(_LIBCUDACXX_USE_IS_FUNDAMENTAL_FALLBACK)
 
 _LIBCUDACXX_END_NAMESPACE_STD
 

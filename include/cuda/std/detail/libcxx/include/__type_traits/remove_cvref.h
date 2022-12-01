@@ -27,17 +27,17 @@
 
 _LIBCUDACXX_BEGIN_NAMESPACE_STD
 
-#if __has_builtin(__remove_cvref)
+#if defined(_LIBCUDACXX_REMOVE_CVREF) && !defined(_LIBCUDACXX_USE_REMOVE_CVREF_FALLBACK)
 
 template <class _Tp>
-using __remove_cvref_t _LIBCUDACXX_NODEBUG = __remove_cvref(_Tp);
+using __remove_cvref_t _LIBCUDACXX_NODEBUG = _LIBCUDACXX_REMOVE_CVREF(_Tp);
 
 #else
 
 template <class _Tp>
 using __remove_cvref_t _LIBCUDACXX_NODEBUG = __remove_cv_t<__libcpp_remove_reference_t<_Tp> >;
 
-#endif // __has_builtin(__remove_cvref)
+#endif // defined(_LIBCUDACXX_REMOVE_CVREF) && !defined(_LIBCUDACXX_USE_REMOVE_CVREF_FALLBACK)
 
 template <class _Tp, class _Up>
 struct __is_same_uncvref : _IsSame<__remove_cvref_t<_Tp>, __remove_cvref_t<_Up> > {};

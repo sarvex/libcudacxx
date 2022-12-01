@@ -37,10 +37,10 @@
 
 _LIBCUDACXX_BEGIN_NAMESPACE_STD
 
-#if __has_builtin(__decay)
+#if defined(_LIBCUDACXX_DECAY) && !defined(_LIBCUDACXX_USE_DECAY_FALLBACK)
 template <class _Tp>
 struct decay {
-  using type _LIBCUDACXX_NODEBUG = __decay(_Tp);
+  using type _LIBCUDACXX_NODEBUG = _LIBCUDACXX_DECAY(_Tp);
 };
 
 #else
@@ -74,7 +74,7 @@ private:
 public:
   typedef _LIBCUDACXX_NODEBUG typename __decay<_Up, __libcpp_is_referenceable<_Up>::value>::type type;
 };
-#endif // __has_builtin(__decay)
+#endif // defined(_LIBCUDACXX_DECAY) && !defined(_LIBCUDACXX_USE_DECAY_FALLBACK)
 
 template <class _Tp> using __decay_t = typename decay<_Tp>::type;
 

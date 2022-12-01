@@ -31,10 +31,10 @@
 
 _LIBCUDACXX_BEGIN_NAMESPACE_STD
 
-#if __has_builtin(__add_pointer)
+#if defined(_LIBCUDACXX_ADD_POINTER) && !defined(_LIBCUDACXX_USE_ADD_POINTER_FALLBACK)
 
 template <class _Tp>
-using __add_pointer_t = __add_pointer(_Tp);
+using __add_pointer_t = _LIBCUDACXX_ADD_POINTER(_Tp);
 
 #else
 template <class _Tp,
@@ -48,7 +48,7 @@ template <class _Tp> struct __add_pointer_impl<_Tp, false>
 template <class _Tp>
 using __add_pointer_t = typename __add_pointer_impl<_Tp>::type;
 
-#endif // __has_builtin(__add_pointer)
+#endif // defined(_LIBCUDACXX_ADD_POINTER) && !defined(_LIBCUDACXX_USE_ADD_POINTER_FALLBACK)
 
 template <class _Tp>
 struct add_pointer {

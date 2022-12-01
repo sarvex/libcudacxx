@@ -24,15 +24,14 @@
 
 _LIBCUDACXX_BEGIN_NAMESPACE_STD
 
-// TODO: Enable using the builtin __array_rank when https://llvm.org/PR57133 is resolved
-#if __has_builtin(__array_rank) && 0
+#if defined(_LIBCUDACXX_ARRAY_RANK) && !defined(_LIBCUDACXX_USE_ARRAY_RANK_FALLBACK) && 0
 
 template <class _Tp>
-struct rank : integral_constant<size_t, __array_rank(_Tp)> {};
+struct rank : integral_constant<size_t, _LIBCUDACXX_ARRAY_RANK(_Tp)> {};
 
 #if _LIBCUDACXX_STD_VER > 11 && !defined(_LIBCUDACXX_HAS_NO_VARIABLE_TEMPLATES)
 template <class _Tp>
-_LIBCUDACXX_INLINE_VAR constexpr size_t rank_v = __array_rank(_Tp);
+_LIBCUDACXX_INLINE_VAR constexpr size_t rank_v = _LIBCUDACXX_ARRAY_RANK(_Tp);
 #endif
 
 #else
@@ -49,7 +48,7 @@ template <class _Tp>
 _LIBCUDACXX_INLINE_VAR constexpr size_t rank_v = rank<_Tp>::value;
 #endif
 
-#endif // __has_builtin(__array_rank)
+#endif // defined(_LIBCUDACXX_ARRAY_RANK) && !defined(_LIBCUDACXX_USE_ARRAY_RANK_FALLBACK)
 
 _LIBCUDACXX_END_NAMESPACE_STD
 

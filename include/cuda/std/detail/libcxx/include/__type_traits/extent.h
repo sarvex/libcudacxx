@@ -25,18 +25,18 @@
 
 _LIBCUDACXX_BEGIN_NAMESPACE_STD
 
-#if __has_builtin(__array_extent)
+#if defined(_LIBCUDACXX_ARRAY_EXTENT) && !defined(_LIBCUDACXX_USE_ARRAY_EXTENT_FALLBACK)
 
 template<class _Tp, size_t _Dim = 0>
 struct _LIBCUDACXX_TEMPLATE_VIS extent
-    : integral_constant<size_t, __array_extent(_Tp, _Dim)> { };
+    : integral_constant<size_t, _LIBCUDACXX_ARRAY_EXTENT(_Tp, _Dim)> { };
 
 #if _LIBCUDACXX_STD_VER > 11 && !defined(_LIBCUDACXX_HAS_NO_VARIABLE_TEMPLATES)
 template <class _Tp, unsigned _Ip = 0>
-_LIBCUDACXX_INLINE_VAR constexpr size_t extent_v = __array_extent(_Tp, _Ip);
+_LIBCUDACXX_INLINE_VAR constexpr size_t extent_v = _LIBCUDACXX_ARRAY_EXTENT(_Tp, _Ip);
 #endif
 
-#else // __has_builtin(__array_extent)
+#else
 
 template <class _Tp, unsigned _Ip = 0> struct _LIBCUDACXX_TEMPLATE_VIS extent
     : public integral_constant<size_t, 0> {};
@@ -54,7 +54,7 @@ template <class _Tp, unsigned _Ip = 0>
 _LIBCUDACXX_INLINE_VAR constexpr size_t extent_v = extent<_Tp, _Ip>::value;
 #endif
 
-#endif // __has_builtin(__array_extent)
+#endif // defined(_LIBCUDACXX_ARRAY_EXTENT) && !defined(_LIBCUDACXX_USE_ARRAY_EXTENT_FALLBACK)
 
 _LIBCUDACXX_END_NAMESPACE_STD
 

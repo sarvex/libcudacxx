@@ -23,10 +23,10 @@
 
 _LIBCUDACXX_BEGIN_NAMESPACE_STD
 
-#if __has_builtin(__add_lvalue_reference)
+#if defined(_LIBCUDACXX_ADD_LVALUE_REFERENCE) && !defined(_LIBCUDACXX_USE_ADD_LVALUE_REFERENCE_FALLBACK)
 
 template <class _Tp>
-using __add_lvalue_reference_t = __add_lvalue_reference(_Tp);
+using __add_lvalue_reference_t = _LIBCUDACXX_ADD_LVALUE_REFERENCE(_Tp);
 
 #else
 
@@ -42,7 +42,7 @@ struct __add_lvalue_reference_impl<_Tp, true> {
 template <class _Tp>
 using __add_lvalue_reference_t = typename __add_lvalue_reference_impl<_Tp>::type;
 
-#endif // __has_builtin(__add_lvalue_reference)
+#endif // defined(_LIBCUDACXX_ADD_LVALUE_REFERENCE) && !defined(_LIBCUDACXX_USE_ADD_LVALUE_REFERENCE_FALLBACK)
 
 template <class _Tp>
 struct add_lvalue_reference {
