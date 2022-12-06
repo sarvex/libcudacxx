@@ -40,7 +40,7 @@ template <class _T1, class _T2> struct _LIBCUDACXX_TEMPLATE_VIS is_convertible
     : public integral_constant<bool, _LIBCUDACXX_IS_CONVERTIBLE_TO(_T1, _T2)> {};
 
 #if _LIBCUDACXX_STD_VER > 11 && !defined(_LIBCUDACXX_HAS_NO_VARIABLE_TEMPLATES)
-template <class _From, class _To>
+template <class _T1, class _T2>
 _LIBCUDACXX_INLINE_VAR constexpr bool is_convertible_v = _LIBCUDACXX_IS_CONVERTIBLE_TO(_T1, _T2);
 #endif
 
@@ -55,7 +55,7 @@ struct __is_convertible_test : public false_type {};
 
 template <class _From, class _To>
 struct __is_convertible_test<_From, _To,
-    decltype(__is_convertible_imp::__test_convert<_To>(_CUDA_VSTD::declval<_From>()))> : public true_type
+    decltype(_CUDA_VSTD::__is_convertible_imp::__test_convert<_To>(_CUDA_VSTD::declval<_From>()))> : public true_type
 {};
 
 template <class _Tp, bool _IsArray =    is_array<_Tp>::value,
@@ -68,7 +68,7 @@ template <class _Tp> struct __is_array_function_or_void<_Tp, false, false, true>
 }
 
 template <class _Tp,
-    unsigned = __is_convertible_imp::__is_array_function_or_void<__libcpp_remove_reference_t<_Tp> >::value>
+    unsigned = __is_convertible_imp::__is_array_function_or_void<__libcpp_remove_reference_t<_Tp>>::value>
 struct __is_convertible_check
 {
     static const size_t __v = 0;
@@ -83,29 +83,29 @@ struct __is_convertible_check<_Tp, 0>
 template <class _T1, class _T2,
     unsigned _T1_is_array_function_or_void = __is_convertible_imp::__is_array_function_or_void<_T1>::value,
     unsigned _T2_is_array_function_or_void = __is_convertible_imp::__is_array_function_or_void<_T2>::value>
-struct __is_convertible
+struct __is_convertible_fallback
     : public integral_constant<bool,
         __is_convertible_imp::__is_convertible_test<_T1, _T2>::value
     >
 {};
 
-template <class _T1, class _T2> struct __is_convertible<_T1, _T2, 0, 1> : public false_type {};
-template <class _T1, class _T2> struct __is_convertible<_T1, _T2, 1, 1> : public false_type {};
-template <class _T1, class _T2> struct __is_convertible<_T1, _T2, 2, 1> : public false_type {};
-template <class _T1, class _T2> struct __is_convertible<_T1, _T2, 3, 1> : public false_type {};
+template <class _T1, class _T2> struct __is_convertible_fallback<_T1, _T2, 0, 1> : public false_type {};
+template <class _T1, class _T2> struct __is_convertible_fallback<_T1, _T2, 1, 1> : public false_type {};
+template <class _T1, class _T2> struct __is_convertible_fallback<_T1, _T2, 2, 1> : public false_type {};
+template <class _T1, class _T2> struct __is_convertible_fallback<_T1, _T2, 3, 1> : public false_type {};
 
-template <class _T1, class _T2> struct __is_convertible<_T1, _T2, 0, 2> : public false_type {};
-template <class _T1, class _T2> struct __is_convertible<_T1, _T2, 1, 2> : public false_type {};
-template <class _T1, class _T2> struct __is_convertible<_T1, _T2, 2, 2> : public false_type {};
-template <class _T1, class _T2> struct __is_convertible<_T1, _T2, 3, 2> : public false_type {};
+template <class _T1, class _T2> struct __is_convertible_fallback<_T1, _T2, 0, 2> : public false_type {};
+template <class _T1, class _T2> struct __is_convertible_fallback<_T1, _T2, 1, 2> : public false_type {};
+template <class _T1, class _T2> struct __is_convertible_fallback<_T1, _T2, 2, 2> : public false_type {};
+template <class _T1, class _T2> struct __is_convertible_fallback<_T1, _T2, 3, 2> : public false_type {};
 
-template <class _T1, class _T2> struct __is_convertible<_T1, _T2, 0, 3> : public false_type {};
-template <class _T1, class _T2> struct __is_convertible<_T1, _T2, 1, 3> : public false_type {};
-template <class _T1, class _T2> struct __is_convertible<_T1, _T2, 2, 3> : public false_type {};
-template <class _T1, class _T2> struct __is_convertible<_T1, _T2, 3, 3> : public true_type {};
+template <class _T1, class _T2> struct __is_convertible_fallback<_T1, _T2, 0, 3> : public false_type {};
+template <class _T1, class _T2> struct __is_convertible_fallback<_T1, _T2, 1, 3> : public false_type {};
+template <class _T1, class _T2> struct __is_convertible_fallback<_T1, _T2, 2, 3> : public false_type {};
+template <class _T1, class _T2> struct __is_convertible_fallback<_T1, _T2, 3, 3> : public true_type {};
 
 template <class _T1, class _T2> struct _LIBCUDACXX_TEMPLATE_VIS is_convertible
-    : public __is_convertible<_T1, _T2>
+    : public __is_convertible_fallback<_T1, _T2>
 {
     static const size_t __complete_check1 = __is_convertible_check<_T1>::__v;
     static const size_t __complete_check2 = __is_convertible_check<_T2>::__v;

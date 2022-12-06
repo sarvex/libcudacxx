@@ -32,11 +32,11 @@ using __add_lvalue_reference_t = _LIBCUDACXX_ADD_LVALUE_REFERENCE(_Tp);
 
 template <class _Tp, bool = __libcpp_is_referenceable<_Tp>::value>
 struct __add_lvalue_reference_impl {
-  typedef _LIBCUDACXX_NODEBUG _Tp type;
+  typedef _Tp type;
 };
 template <class _Tp >
 struct __add_lvalue_reference_impl<_Tp, true> {
-  typedef _LIBCUDACXX_NODEBUG _Tp& type;
+  typedef _Tp& type;
 };
 
 template <class _Tp>

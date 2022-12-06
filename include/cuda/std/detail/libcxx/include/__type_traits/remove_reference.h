@@ -32,9 +32,9 @@ using __libcpp_remove_reference_t = _LIBCUDACXX_REMOVE_REFERENCE_T(_Tp);
 
 #else
 
-template <class _Tp> struct _LIBCUDACXX_TEMPLATE_VIS remove_reference        {typedef _LIBCUDACXX_NODEBUG _Tp type;};
-template <class _Tp> struct _LIBCUDACXX_TEMPLATE_VIS remove_reference<_Tp&>  {typedef _LIBCUDACXX_NODEBUG _Tp type;};
-template <class _Tp> struct _LIBCUDACXX_TEMPLATE_VIS remove_reference<_Tp&&> {typedef _LIBCUDACXX_NODEBUG _Tp type;};
+template <class _Tp> struct _LIBCUDACXX_TEMPLATE_VIS remove_reference        {typedef _Tp type;};
+template <class _Tp> struct _LIBCUDACXX_TEMPLATE_VIS remove_reference<_Tp&>  {typedef _Tp type;};
+template <class _Tp> struct _LIBCUDACXX_TEMPLATE_VIS remove_reference<_Tp&&> {typedef _Tp type;};
 
 template <class _Tp>
 using __libcpp_remove_reference_t = typename remove_reference<_Tp>::type;

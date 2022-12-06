@@ -27,6 +27,8 @@
 
 _LIBCUDACXX_BEGIN_NAMESPACE_STD
 
+template<typename, typename _Tp> struct __select_2nd { typedef _LIBCUDACXX_NODEBUG_TYPE _Tp type; };
+
 #if defined(_LIBCUDACXX_IS_ASSIGNABLE) && !defined(_LIBCUDACXX_USE_IS_ASSIGNABLE_FALLBACK)
 
 template <class _T1, class _T2> struct _LIBCUDACXX_TEMPLATE_VIS is_assignable
@@ -34,13 +36,11 @@ template <class _T1, class _T2> struct _LIBCUDACXX_TEMPLATE_VIS is_assignable
     {};
 
 #if _LIBCUDACXX_STD_VER > 11 && !defined(_LIBCUDACXX_HAS_NO_VARIABLE_TEMPLATES)
-template <class _Tp, class _T2>
+template <class _T1, class _T2>
 _LIBCUDACXX_INLINE_VAR constexpr bool is_assignable_v = _LIBCUDACXX_IS_ASSIGNABLE(_T1, _T2);
 #endif
 
 #else
-
-template<typename, typename _Tp> struct __select_2nd { typedef _LIBCUDACXX_NODEBUG_TYPE _Tp type; };
 
 template <class _Tp, class _Arg>
 _LIBCUDACXX_INLINE_VISIBILITY

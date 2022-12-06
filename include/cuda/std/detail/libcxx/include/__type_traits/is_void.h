@@ -27,7 +27,7 @@
 
 _LIBCUDACXX_BEGIN_NAMESPACE_STD
 
-#if defined(_LIBCUDACXX_IS_VOID) && !defined(_LIBCUDACXX_USE_IS_VOID_FALLBACK)
+#if 0 // defined(_LIBCUDACXX_IS_VOID) && !defined(_LIBCUDACXX_USE_IS_VOID_FALLBACK)
 
 template <class _Tp>
 struct _LIBCUDACXX_TEMPLATE_VIS is_void 
