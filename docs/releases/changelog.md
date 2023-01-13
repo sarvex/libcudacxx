@@ -10,6 +10,17 @@ It pulls in the latest version of upstream libc++ and marks the beginning of
   automatic tracking of upstream.
 -->
 
+
+## libcu++ 1.9.1
+
+This is a minor release that fixes issues in `cuda::[std::]atomic` with certain small types.
+
+Supported ABI Versions: 4 (default), 3, and 2.
+
+### Issues Fixed
+
+- #347: Fix errors in `<cuda/std/atomic>` with small aggregates and enum classes.
+
 ## libcu++ 1.9.0
 
 Adds `float` and `double` support to `cuda::std::atomic` and `cuda::atomic`.
