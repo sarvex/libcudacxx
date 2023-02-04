@@ -4,6 +4,7 @@ services:
     image: "local/cccl-ubuntu22.04"
     tty: true
     profiles: ["base"]
+    platform: $DEFAULT_ARCH
     build:
       cache_from:
         - "local/cccl-ubuntu22.04:latest"

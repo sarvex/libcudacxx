@@ -10,7 +10,6 @@ FROM ${ROOT_IMAGE} AS devenv
 ARG COMPILERS="gcc clang"
 
 ARG CMAKE_VER=3.23.1
-ARG CMAKE_URL=https://github.com/Kitware/CMake/releases/download/v${CMAKE_VER}/cmake-${CMAKE_VER}-Linux-x86_64.sh
 
 ARG UBUNTU_TOOL_DEB_REPO=https://ppa.launchpadcontent.net/ubuntu-toolchain-r/ppa/ubuntu
 ARG UBUNTU_TOOL_FINGER=60C317803A41BA51845E371A1E9377A2BA9EF27F
@@ -30,7 +29,7 @@ ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1
 SHELL ["/usr/bin/env", "bash", "-c"]
 
 ADD ${LLVM_INSTALLER} /tmp/llvm.sh
-ADD ${CMAKE_URL} /tmp/cmake.sh
+
 
 # Install baseline development tools
 RUN function comment() { :; }; \
@@ -49,6 +48,7 @@ RUN function comment() { :; }; \
     if [ "${USE_LLVM_INSTALLER}" -eq "1" ]; then echo "\n" | bash /tmp/llvm.sh all; fi; \
     ${APT_GET} install gcc g++ ${COMPILERS}; \
     comment "Install CMake"; \
+    wget -O /tmp/cmake.sh "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VER}/cmake-${CMAKE_VER}-Linux-$(arch).sh"; \
     sh /tmp/cmake.sh --skip-license --prefix=/usr; \
     comment "Install Python utils"; \
     update-alternatives --quiet --install /usr/bin/python python $(which python3) 3; \
