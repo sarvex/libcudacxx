@@ -34,6 +34,11 @@ _LIBCUDACXX_BEGIN_NAMESPACE_CUDA
 #  error "CUDA synchronization primitives are only supported for sm_70 and up."
 #endif
 
+_LIBCUDACXX_INLINE_VISIBILITY
+constexpr bool __is_bulk_enabled() {
+    return true;
+}
+
 // foward declaration required for memcpy_async, pipeline "sync" defined here
 template<thread_scope _Scope>
 class pipeline;
@@ -671,6 +676,29 @@ struct __memcpy_async_impl<16, false> {
 template<std::size_t _Alignment>
 struct __memcpy_async_impl<_Alignment, true> : public __memcpy_async_impl<16, false> { };
 
+struct __memcpy_async_ublk_impl {
+    template<typename _Sync>
+    __device__ static inline async_contract_fulfillment __copy(_Sync & __sync, char * __destination, char const * __source, std::size_t __size) {
+#if (_LIBCUDACXX_DEBUG_LEVEL >= 2)
+        _LIBCUDACXX_DEBUG_ASSERT(_Sco >= thread_scope);
+        _LIBCUDACXX_DEBUG_ASSERT(__destination != null_ptr);
+        _LIBCUDACXX_DEBUG_ASSERT(__source != null_ptr);
+#endif
+
+        NV_DISPATCH_TARGET(
+            NV_PROVIDES_SM_90,
+                asm volatile ("cp.async.bulk.mbarrier.shared.global [%0], [%1], %2, [%3];"
+                        :: "r"(static_cast<std::uint32_t>(__cvta_generic_to_shared(__destination))),
+                        "l"((__cvta_generic_to_global(__source))),
+                        "r"(static_cast<std::uint32_t>(__size/16)),
+                        "r"(static_cast<std::uint32_t>(__cvta_generic_to_shared(&__sync)))
+                        : "memory");
+                return async_contract_fulfillment::async;
+        )
+    }
+};
+
+
 struct __memcpy_arrive_on_impl {
     template<thread_scope _Sco, typename _CompF, bool _Is_mbarrier = (_Sco >= thread_scope_block) && std::is_same<_CompF, std::__empty_completion>::value>
     _LIBCUDACXX_INLINE_VISIBILITY static inline void __arrive_on(barrier<_Sco, _CompF> & __barrier, async_contract_fulfillment __is_async) {
@@ -714,6 +742,15 @@ void inline __memcpy_async_sm_dispatch(
         std::size_t __size, _Sync & __sync, async_contract_fulfillment & __is_async) {
     // Broken out of __memcpy_async to avoid nesting dispatches
     NV_DISPATCH_TARGET(
+        NV_PROVIDES_SM_90,
+            if (__is_bulk_enabled() && __isShared(&__sync)) {
+                __is_async = __memcpy_async_ublk_impl::__copy(__sync, __destination, __source, __size);
+            }
+            else
+            {
+                __is_async = __memcpy_async_impl<16>::__copy(__destination, __source, __size, __group.thread_rank(), __group.size());
+            }
+        ,
         NV_PROVIDES_SM_80,
             __is_async = __memcpy_async_impl<16>::__copy(__destination, __source, __size, __group.thread_rank(), __group.size());
     )
