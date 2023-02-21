@@ -2063,6 +2063,8 @@ extern "C" _LIBCUDACXX_FUNC_VIS void __sanitizer_annotate_contiguous_container(
 #  define _LIBCUDACXX_TRAIT(__TRAIT, ...) __TRAIT<__VA_ARGS__>::value
 #endif
 
+#define _LIBCUDACXX_HAS_NO_INCOMPLETE_RANGES
+
 #endif // __cplusplus
 
 #endif // _LIBCUDACXX_CONFIG
