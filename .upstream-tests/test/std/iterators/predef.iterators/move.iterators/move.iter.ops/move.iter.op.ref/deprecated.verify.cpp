@@ -7,37 +7,15 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <cuda/std/iterator>
-
-// UNSUPPORTED: nvrtc
+// UNSUPPORTED: c++03, c++11, c++14, c++17
 
 // move_iterator
 
-// template <class U>
-//   requires HasConstructor<Iter, const U&>
-//   move_iterator(const move_iterator<U> &u);
-
-// test requires
-
 #include <cuda/std/iterator>
 
-template <class It, class U>
-__host__ __device__
-void
-test(U u)
-{
-    cuda::std::move_iterator<U> r2(u);
-    cuda::std::move_iterator<It> r1 = r2;
-}
-
-struct base {};
-struct derived {};
-
-int main(int, char**)
-{
-    derived d;
-
-    test<base*>(&d);
+int main(int, char**) {
+  (void)cuda::std::move_iterator<int*>().operator->();
+  // expected-warning@-1{{'operator->' is deprecated}}
 
   return 0;
 }
