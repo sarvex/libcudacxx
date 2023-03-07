@@ -312,6 +312,7 @@ namespace std {
 
 #include "__assert" // all public C++ headers provide the assertion handler
 #include "__ranges/all.h"
+#include "__ranges/common_view.h"
 #include "__ranges/concepts.h"
 #include "__ranges/counted.h"
 #include "__ranges/dangling.h"
