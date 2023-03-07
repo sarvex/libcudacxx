@@ -310,10 +310,7 @@ namespace std {
 #include <__config>
 #endif // __cuda_std__
 
-#include "__algorithm/min.h"
-#include "__algorithm/ranges_min.h"
 #include "__assert" // all public C++ headers provide the assertion handler
-#include "__ranges/access.h"
 #include "__ranges/all.h"
 #include "__ranges/concepts.h"
 #include "__ranges/counted.h"
@@ -331,6 +328,7 @@ namespace std {
 #include "__ranges/single_view.h"
 #include "__ranges/size.h"
 #include "__ranges/subrange.h"
+#include "__ranges/take_view.h"
 #include "__ranges/take_while_view.h"
 #include "__ranges/transform_view.h"
 #include "__ranges/view_interface.h"
