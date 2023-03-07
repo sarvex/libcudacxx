@@ -310,9 +310,7 @@ namespace std {
 #include <__config>
 #endif // __cuda_std__
 
-#include "__algorithm/ranges_find_if.h"
 #include "__assert" // all public C++ headers provide the assertion handler
-#include "__ranges/access.h"
 #include "__ranges/all.h"
 #include "__ranges/concepts.h"
 #include "__ranges/counted.h"
@@ -324,6 +322,7 @@ namespace std {
 #include "__ranges/empty_view.h"
 #include "__ranges/enable_borrowed_range.h"
 #include "__ranges/enable_view.h"
+#include "__ranges/filter_view.h"
 #include "__ranges/iota_view.h"
 #include "__ranges/owning_view.h"
 #include "__ranges/rbegin.h"
