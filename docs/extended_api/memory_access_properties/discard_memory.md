@@ -12,11 +12,9 @@ __device__ void discard_memory(void volatile* ptr, size_t nbytes);
 
 **Preconditions**: `ptr` points to a valid allocation of size greater or equal to `nbytes`.
 
-**Effects**: equivalent to `memset(ptr, _indeterminate_, nbytes)`.
+**Effects**: `discard_memory` is a weak memory operation that behaves like a write for the purpose of conflicting accesses. After executing it, a value must be written to the memory before reading from it; otherwise, the behavior is _undefined_.
 
-**Hint**: to discard modified cache lines without writing back the cached data to memory. 
-Enables using global memory as temporary scratch space.
-Does **not** generate any HW store operations.
+**Note**: intended to avoid writing-back memory modifications to main memory, e.g., when using global memory as temporary scratch space.
 
 # Example
 
