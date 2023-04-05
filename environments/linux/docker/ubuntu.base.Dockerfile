@@ -70,7 +70,7 @@ ENV PATH="$PATH:/opt/intel/oneapi/compiler/${ICC_TOOLKIT_VER}/linux/bin"
 RUN function comment() { :; }; \
     comment "Compilers required by image"; \
     ${APT_GET} update; \
-    if [ "${HOST_CXX}" = "icpx"]; then ${APT_GET} install intel-dpcpp-cpp-compiler-${ICC_TOOLKIT_VER}; fi; \
+    if [ "${HOST_CXX}" = "icpx" ]; then ${APT_GET} install intel-dpcpp-cpp-compiler-${ICC_TOOLKIT_VER}; fi; \
     # Unattended installation hack
     if [ "${HOST_CXX}" = "clang++-15" ]; then echo "\n" | bash /tmp/llvm.sh 15; fi; \
     if [ "${HOST_CXX}" = "clang++-16" ]; then echo "\n" | bash /tmp/llvm.sh 16; fi; \
@@ -87,21 +87,21 @@ ADD ./.upstream-tests/test                   /libcudacxx/test
 ADD ./.upstream-tests/utils                   /libcudacxx/utils
 
 # Install compiler and configure project
-# RUN cmake -S /libcudacxx -B /build \
-#         -G Ninja \
-#         -DLIBCUDACXX_ENABLE_STATIC_LIBRARY=OFF \
-#         -DLIBCUDACXX_ENABLE_LIBCUDACXX_TESTS=ON \
-#         -DLIBCUDACXX_ENABLE_LIBCXX_TESTS=ON \
-#         -DLIBCUDACXX_TEST_COMPILER_FLAGS="-allow-unsupported-compiler" \
-#         -DLIBCUDACXX_TEST_WITH_NVRTC=${TEST_WITH_NVRTC} \
-#         -DLIBCUDACXX_TEST_STANDARD_VER=c++${CXX_DIALECT} \
-#         -DLIBCXX_ENABLE_FILESYSTEM=OFF \
-#         -DCMAKE_CXX_COMPILER=${HOST_CXX} \
-#         -DCMAKE_CUDA_COMPILER=${CUDACXX_PATH} \
-#         -DCMAKE_CUDA_FLAGS="-allow-unsupported-compiler -std=c++14"
+RUN cmake -S /libcudacxx -B /build \
+        -G Ninja \
+        -DLIBCUDACXX_ENABLE_STATIC_LIBRARY=OFF \
+        -DLIBCUDACXX_ENABLE_LIBCUDACXX_TESTS=ON \
+        -DLIBCUDACXX_ENABLE_LIBCXX_TESTS=ON \
+        -DLIBCUDACXX_TEST_COMPILER_FLAGS="-allow-unsupported-compiler" \
+        -DLIBCUDACXX_TEST_WITH_NVRTC=${TEST_WITH_NVRTC} \
+        -DLIBCUDACXX_TEST_STANDARD_VER=c++${CXX_DIALECT} \
+        -DLIBCXX_ENABLE_FILESYSTEM=OFF \
+        -DCMAKE_CXX_COMPILER=${HOST_CXX} \
+        -DCMAKE_CUDA_COMPILER=${CUDACXX_PATH} \
+        -DCMAKE_CUDA_FLAGS="-allow-unsupported-compiler -std=c++14"
 
-# RUN ninja -C /build libcudacxx_tu_tests && ninja -C /build clean
-# RUN ninja -C /build cxx
+RUN ninja -C /build libcudacxx_tu_tests && ninja -C /build clean
+RUN ninja -C /build cxx
 
 ENV LIBCUDACXX_SITE_CONFIG=/build/test/lit.site.cfg
 ENV LIBCXX_SITE_CONFIG=/build/libcxx/test/lit.site.cfg
