@@ -74,22 +74,18 @@ services:
     deploy: *deploy-template
 
   icc-2022:
+    extends:
+      service: ubuntu22.04
     image: "libcudacxx/icc-2022"
+    container_name: icc-2022
     profiles: ["icc-2022", "all", "base"]
-    tty: true
     build:
-      cache_from:
-        - "local/icc-2022:latest"
-        - "local/icc-2022:cached"
       context: ../../../
-      dockerfile: environments/linux/docker/icc.base.Dockerfile
+      dockerfile: environments/linux/docker/ubuntu.base.Dockerfile
       target: libcudacxx-configured
       args:
         ICC_TOOLKIT_VER: "2022.2.1"
         HOST_CXX: "icpx"
-        BUILDKIT_INLINE_CACHE: "1"
-        ROOT_IMAGE: "nvcr.io/nvidia/cuda:12.1.0-devel-ubuntu22.04"
-    deploy: *deploy-template
 
   gcc-11:
     extends:
