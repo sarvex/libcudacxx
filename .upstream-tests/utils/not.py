@@ -21,7 +21,7 @@ def which_cannot_find_program(prog):
         import distutils.spawn
         prog = distutils.spawn.find_executable(prog[0])
         if prog is None:
-            sys.stderr.write('Failed to find program %s' % prog[0])
+            sys.stderr.write(f'Failed to find program {prog[0]}')
             return True
         return False
     except:
@@ -30,21 +30,19 @@ def which_cannot_find_program(prog):
 def main():
     argv = list(sys.argv)
     del argv[0]
-    if len(argv) > 0 and argv[0] == '--crash':
+    if argv and argv[0] == '--crash':
         del argv[0]
         expectCrash = True
     else:
         expectCrash = False
-    if len(argv) == 0:
+    if not argv:
         return 1
     if which_cannot_find_program(argv[0]):
         return 1
     rc = subprocess.call(argv)
     if rc < 0:
         return 0 if expectCrash else 1
-    if expectCrash:
-        return 1
-    return rc == 0
+    return 1 if expectCrash else rc == 0
 
 
 if __name__ == '__main__':

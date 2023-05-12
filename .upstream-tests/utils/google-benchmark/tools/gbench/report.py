@@ -72,9 +72,9 @@ def calculate_change(old_val, new_val):
     """
     Return a float representing the decimal change between old_val and new_val.
     """
-    if old_val == 0 and new_val == 0:
-        return 0.0
     if old_val == 0:
+        if new_val == 0:
+            return 0.0
         return float(new_val - old_val) / (float(old_val + new_val) / 2)
     return float(new_val - old_val) / abs(old_val)
 
@@ -84,8 +84,7 @@ def filter_benchmark(json_orig, family, replacement=""):
     Apply a filter to the json, and only leave the 'family' of benchmarks.
     """
     regex = re.compile(family)
-    filtered = {}
-    filtered['benchmarks'] = []
+    filtered = {'benchmarks': []}
     for be in json_orig['benchmarks']:
         if not regex.search(be['name']):
             continue
@@ -100,10 +99,11 @@ def get_unique_benchmark_names(json):
     While *keeping* the order, give all the unique 'names' used for benchmarks.
     """
     seen = set()
-    uniqued = [x['name'] for x in json['benchmarks']
-               if x['name'] not in seen and
-               (seen.add(x['name']) or True)]
-    return uniqued
+    return [
+        x['name']
+        for x in json['benchmarks']
+        if x['name'] not in seen and (seen.add(x['name']) or True)
+    ]
 
 
 def intersect(list1, list2):

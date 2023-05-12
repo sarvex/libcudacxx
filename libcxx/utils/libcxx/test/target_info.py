@@ -25,7 +25,8 @@ class DefaultTargetInfo(object):
 
     def add_locale_features(self, features):
         self.full_config.lit_config.warning(
-            "No locales entry for target_system: %s" % self.platform())
+            f"No locales entry for target_system: {self.platform()}"
+        )
 
     def add_cxx_compile_flags(self, flags): pass
     def add_cxx_link_flags(self, flags): pass
@@ -99,8 +100,7 @@ class DarwinLocalTI(DefaultTargetInfo):
         return re.sub(r'.*/[^0-9]+([0-9.]+)\.sdk', r'\1', out)
 
     def get_platform(self):
-        platform = self.full_config.get_lit_conf('platform')
-        if platform:
+        if platform := self.full_config.get_lit_conf('platform'):
             platform = re.sub(r'([^0-9]+)([0-9\.]*)', r'\1-\2', platform)
             name, version = tuple(platform.split('-', 1))
         else:
@@ -130,7 +130,9 @@ class DarwinLocalTI(DefaultTargetInfo):
             cmd = ['xcrun', '--show-sdk-path']
         out, err, exit_code = executeCommand(cmd)
         if exit_code != 0:
-            self.full_config.lit_config.warning("Could not determine macOS SDK path! stderr was " + err)
+            self.full_config.lit_config.warning(
+                f"Could not determine macOS SDK path! stderr was {err}"
+            )
         if exit_code == 0 and out:
             sdk_path = out.strip()
             self.full_config.lit_config.note('using SDKROOT: %r' % sdk_path)
@@ -212,20 +214,14 @@ class LinuxLocalTI(DefaultTargetInfo):
             if not shared_libcxx:
                 flags += ['-lrt']
         flags += ['-lc']
-        if llvm_unwinder:
-            flags += ['-lunwind', '-ldl']
-        else:
-            flags += ['-lgcc_s']
-        builtins_lib = self.full_config.get_lit_conf('builtins_library')
-        if builtins_lib:
+        flags += ['-lunwind', '-ldl'] if llvm_unwinder else ['-lgcc_s']
+        if builtins_lib := self.full_config.get_lit_conf('builtins_library'):
             flags += [builtins_lib]
         else:
             flags += ['-lgcc']
-        use_libatomic = self.full_config.get_lit_bool('use_libatomic', False)
-        if use_libatomic:
+        if use_libatomic := self.full_config.get_lit_bool('use_libatomic', False):
             flags += ['-latomic']
-        san = self.full_config.get_lit_conf('use_sanitizer', '').strip()
-        if san:
+        if san := self.full_config.get_lit_conf('use_sanitizer', '').strip():
             # The libraries and their order are taken from the
             # linkSanitizerRuntimeDeps function in
             # clang/lib/Driver/Tools.cpp

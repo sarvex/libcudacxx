@@ -34,10 +34,10 @@ def loadSiteConfig(lit_config, config, param_name, env_name):
                            ' Running the tests in the default configuration.')
     elif not os.path.isfile(site_cfg):
         lit_config.fatal(
-            "Specified site configuration file does not exist: '%s'" %
-            site_cfg)
+            f"Specified site configuration file does not exist: '{site_cfg}'"
+        )
     else:
-        lit_config.note('using site specific configuration at %s' % site_cfg)
+        lit_config.note(f'using site specific configuration at {site_cfg}')
         ld_fn = lit_config.load_config
 
         # Null out the load_config function so that lit.site.cfg doesn't
@@ -45,6 +45,7 @@ def loadSiteConfig(lit_config, config, param_name, env_name):
         # TODO: This is one hell of a hack. Fix it.
         def prevent_reload_fn(*args, **kwargs):
             pass
+
         lit_config.load_config = prevent_reload_fn
         ld_fn(config, site_cfg)
         lit_config.load_config = ld_fn
@@ -82,8 +83,8 @@ class Configuration(object):
         val = self.lit_config.params.get(name, None)
         if val is None:
             val = getattr(self.config, name, None)
-            if val is None:
-                val = default
+        if val is None:
+            val = default
         return val
 
     def get_lit_bool(self, name, default=None, env_var=None):
@@ -119,11 +120,10 @@ class Configuration(object):
 
     def make_static_lib_name(self, name):
         """Return the full filename for the specified library name"""
-        if self.is_windows:
-            assert name == 'c++'  # Only allow libc++ to use this function for now.
-            return 'lib' + name + '.lib'
-        else:
-            return 'lib' + name + '.a'
+        if not self.is_windows:
+            return f'lib{name}.a'
+        assert name == 'c++'  # Only allow libc++ to use this function for now.
+        return f'lib{name}.lib'
 
     def configure(self):
         self.configure_executor()
@@ -157,23 +157,23 @@ class Configuration(object):
 
     def print_config_info(self):
         # Print the final compile and link flags.
-        self.lit_config.note('Using compiler: %s' % self.cxx.path)
-        self.lit_config.note('Using flags: %s' % self.cxx.flags)
+        self.lit_config.note(f'Using compiler: {self.cxx.path}')
+        self.lit_config.note(f'Using flags: {self.cxx.flags}')
         if self.cxx.use_modules:
-            self.lit_config.note('Using modules flags: %s' %
-                                 self.cxx.modules_flags)
-        self.lit_config.note('Using compile flags: %s'
-                             % self.cxx.compile_flags)
+            self.lit_config.note(f'Using modules flags: {self.cxx.modules_flags}')
+        self.lit_config.note(f'Using compile flags: {self.cxx.compile_flags}')
         if len(self.cxx.warning_flags):
-            self.lit_config.note('Using warnings: %s' % self.cxx.warning_flags)
-        self.lit_config.note('Using link flags: %s' % self.cxx.link_flags)
+            self.lit_config.note(f'Using warnings: {self.cxx.warning_flags}')
+        self.lit_config.note(f'Using link flags: {self.cxx.link_flags}')
         # Print as list to prevent "set([...])" from being printed.
-        self.lit_config.note('Using available_features: %s' %
-                             list(self.config.available_features))
-        show_env_vars = {}
-        for k,v in self.exec_env.items():
-            if k not in os.environ or os.environ[k] != v:
-                show_env_vars[k] = v
+        self.lit_config.note(
+            f'Using available_features: {list(self.config.available_features)}'
+        )
+        show_env_vars = {
+            k: v
+            for k, v in self.exec_env.items()
+            if k not in os.environ or os.environ[k] != v
+        }
         self.lit_config.note('Adding environment variables: %r' % show_env_vars)
         sys.stderr.flush()  # Force flushing to avoid broken output on Windows
 
@@ -212,15 +212,14 @@ class Configuration(object):
         cxx = self.get_lit_conf('cxx_under_test')
         cxx_first_arg = self.get_lit_conf('cxx_first_arg')
         self.cxx_is_clang_cl = cxx is not None and \
-                               os.path.basename(cxx) == 'clang-cl.exe'
+                                   os.path.basename(cxx) == 'clang-cl.exe'
         # If no specific cxx_under_test was given, attempt to infer it as
         # clang++.
         if cxx is None or self.cxx_is_clang_cl:
             search_paths = self.config.environment['PATH']
             if cxx is not None and os.path.isabs(cxx):
                 search_paths = os.path.dirname(cxx)
-            clangxx = libcxx.util.which('clang++', search_paths)
-            if clangxx:
+            if clangxx := libcxx.util.which('clang++', search_paths):
                 cxx = clangxx
                 self.lit_config.note(
                     "inferred cxx_under_test as: %r" % cxx)
@@ -231,25 +230,21 @@ class Configuration(object):
             self.lit_config.fatal('must specify user parameter cxx_under_test '
                                   '(e.g., --param=cxx_under_test=clang++)')
         self.cxx = CXXCompiler(cxx, cxx_first_arg) if not self.cxx_is_clang_cl else \
-                   self._configure_clang_cl(cxx)
+                       self._configure_clang_cl(cxx)
         cxx_type = self.cxx.type
         if cxx_type is not None:
             assert self.cxx.version is not None
             maj_v, min_v, patch_v = self.cxx.version
             self.config.available_features.add(cxx_type)
-            self.config.available_features.add('%s-%s' % (cxx_type, maj_v))
-            self.config.available_features.add('%s-%s.%s' % (
-                cxx_type, maj_v, min_v))
-            self.config.available_features.add('%s-%s.%s.%s' % (
-                cxx_type, maj_v, min_v, patch_v))
-        self.lit_config.note("detected cxx.type as: {}".format(
-                             self.cxx.type))
-        self.lit_config.note("detected cxx.version as: {}".format(
-                             self.cxx.version))
-        self.lit_config.note("detected cxx.default_dialect as: {}".format(
-                             self.cxx.default_dialect))
-        self.lit_config.note("detected cxx.is_nvrtc as: {}".format(
-                             self.cxx.is_nvrtc))
+            self.config.available_features.add(f'{cxx_type}-{maj_v}')
+            self.config.available_features.add(f'{cxx_type}-{maj_v}.{min_v}')
+            self.config.available_features.add(f'{cxx_type}-{maj_v}.{min_v}.{patch_v}')
+        self.lit_config.note(f"detected cxx.type as: {self.cxx.type}")
+        self.lit_config.note(f"detected cxx.version as: {self.cxx.version}")
+        self.lit_config.note(
+            f"detected cxx.default_dialect as: {self.cxx.default_dialect}"
+        )
+        self.lit_config.note(f"detected cxx.is_nvrtc as: {self.cxx.is_nvrtc}")
         self.cxx.compile_env = dict(os.environ)
         # 'CCACHE_CPP2' prevents ccache from stripping comments while
         # preprocessing. This is required to prevent stripping of '-verify'
@@ -257,36 +252,34 @@ class Configuration(object):
         self.cxx.compile_env['CCACHE_CPP2'] = '1'
 
         if self.cxx.type == 'nvcc' and not self.cxx.is_nvrtc:
-          nvcc_host_compiler = self.get_lit_conf('nvcc_host_compiler')
-          if len(nvcc_host_compiler.strip()) == 0:
-            if platform.system() == 'Darwin':
-              nvcc_host_compiler = 'clang'
-            elif platform.system() == 'Windows':
-              nvcc_host_compiler = 'cl.exe'
-            else:
-              nvcc_host_compiler = 'gcc'
+            nvcc_host_compiler = self.get_lit_conf('nvcc_host_compiler')
+            if len(nvcc_host_compiler.strip()) == 0:
+              if platform.system() == 'Darwin':
+                nvcc_host_compiler = 'clang'
+              elif platform.system() == 'Windows':
+                nvcc_host_compiler = 'cl.exe'
+              else:
+                nvcc_host_compiler = 'gcc'
 
-          self.host_cxx = CXXCompiler(nvcc_host_compiler, None)
-          self.host_cxx_type = self.host_cxx.type
-          if self.host_cxx_type is not None:
-              assert self.host_cxx.version is not None
-              maj_v, min_v, _ = self.host_cxx.version
-              self.config.available_features.add(self.host_cxx_type)
-              self.config.available_features.add('%s-%s' % (
-                  self.host_cxx_type, maj_v))
-              self.config.available_features.add('%s-%s.%s' % (
-                  self.host_cxx_type, maj_v, min_v))
-          self.lit_config.note("detected host_cxx.type as: {}".format(
-                               self.host_cxx.type))
-          self.lit_config.note("detected host_cxx.version as: {}".format(
-                               self.host_cxx.version))
-          self.lit_config.note("detected host_cxx.default_dialect as: {}".format(
-                               self.host_cxx.default_dialect))
-          self.lit_config.note("detected host_cxx.is_nvrtc as: {}".format(
-                               self.host_cxx.is_nvrtc))
+            self.host_cxx = CXXCompiler(nvcc_host_compiler, None)
+            self.host_cxx_type = self.host_cxx.type
+            if self.host_cxx_type is not None:
+                assert self.host_cxx.version is not None
+                maj_v, min_v, _ = self.host_cxx.version
+                self.config.available_features.add(self.host_cxx_type)
+                self.config.available_features.add(f'{self.host_cxx_type}-{maj_v}')
+                self.config.available_features.add(f'{self.host_cxx_type}-{maj_v}.{min_v}')
+            self.lit_config.note(f"detected host_cxx.type as: {self.host_cxx.type}")
+            self.lit_config.note(f"detected host_cxx.version as: {self.host_cxx.version}")
+            self.lit_config.note(
+                f"detected host_cxx.default_dialect as: {self.host_cxx.default_dialect}"
+            )
+            self.lit_config.note(
+                f"detected host_cxx.is_nvrtc as: {self.host_cxx.is_nvrtc}"
+            )
 
-          if 'icc' in self.config.available_features:
-              self.cxx.link_flags += ['-lirc']
+            if 'icc' in self.config.available_features:
+                self.cxx.link_flags += ['-lirc']
 
     def _configure_clang_cl(self, clang_path):
         def _split_env_var(var):
@@ -355,7 +348,9 @@ class Configuration(object):
         elif self.use_system_cxx_lib == 'false':
             self.use_system_cxx_lib = False
         elif self.use_system_cxx_lib:
-            assert os.path.isdir(self.use_system_cxx_lib), "the specified use_system_cxx_lib parameter (%s) is not a valid directory" % self.use_system_cxx_lib
+            assert os.path.isdir(
+                self.use_system_cxx_lib
+            ), f"the specified use_system_cxx_lib parameter ({self.use_system_cxx_lib}) is not a valid directory"
             self.use_system_cxx_lib = os.path.abspath(self.use_system_cxx_lib)
         self.lit_config.note(
             "inferred use_system_cxx_lib as: %r" % self.use_system_cxx_lib)
@@ -364,10 +359,10 @@ class Configuration(object):
         self.cxx_stdlib_under_test = self.get_lit_conf(
             'cxx_stdlib_under_test', 'libc++')
         if self.cxx_stdlib_under_test not in \
-                ['libc++', 'libstdc++', 'msvc', 'cxx_default']:
+                    ['libc++', 'libstdc++', 'msvc', 'cxx_default']:
             self.lit_config.fatal(
-                'unsupported value for "cxx_stdlib_under_test": %s'
-                % self.cxx_stdlib_under_test)
+                f'unsupported value for "cxx_stdlib_under_test": {self.cxx_stdlib_under_test}'
+            )
         self.config.available_features.add(self.cxx_stdlib_under_test)
         if self.cxx_stdlib_under_test == 'libstdc++':
             self.config.available_features.add('libstdc++')
@@ -391,8 +386,7 @@ class Configuration(object):
 
     def configure_use_thread_safety(self):
         '''If set, run clang with -verify on failing tests.'''
-        has_thread_safety = self.cxx.hasCompileFlag('-Werror=thread-safety')
-        if has_thread_safety:
+        if has_thread_safety := self.cxx.hasCompileFlag('-Werror=thread-safety'):
             self.cxx.compile_flags += ['-Werror=thread-safety']
             self.config.available_features.add('thread-safety')
             self.lit_config.note("enabling thread-safety annotations")
@@ -418,20 +412,18 @@ class Configuration(object):
 
     def configure_ccache(self):
         use_ccache_default = os.environ.get('LIBCXX_USE_CCACHE') is not None
-        use_ccache = self.get_lit_bool('use_ccache', use_ccache_default)
-        if use_ccache:
+        if use_ccache := self.get_lit_bool('use_ccache', use_ccache_default):
             self.cxx.use_ccache = True
             self.lit_config.note('enabling ccache')
 
     def add_deployment_feature(self, feature):
         (arch, name, version) = self.config.deployment
-        self.config.available_features.add('%s=%s-%s' % (feature, arch, name))
-        self.config.available_features.add('%s=%s' % (feature, name))
-        self.config.available_features.add('%s=%s%s' % (feature, name, version))
+        self.config.available_features.add(f'{feature}={arch}-{name}')
+        self.config.available_features.add(f'{feature}={name}')
+        self.config.available_features.add(f'{feature}={name}{version}')
 
     def configure_features(self):
-        additional_features = self.get_lit_conf('additional_features')
-        if additional_features:
+        if additional_features := self.get_lit_conf('additional_features'):
             for f in additional_features.split(','):
                 self.config.available_features.add(f.strip())
         self.target_info.add_locale_features(self.config.available_features)
@@ -445,13 +437,13 @@ class Configuration(object):
         if self.use_system_cxx_lib:
             self.config.available_features.add('with_system_cxx_lib')
             self.config.available_features.add(
-                'with_system_cxx_lib=%s' % self.config.target_triple)
+                f'with_system_cxx_lib={self.config.target_triple}'
+            )
 
             # Add subcomponents individually.
             target_components = self.config.target_triple.split('-')
             for component in target_components:
-                self.config.available_features.add(
-                    'with_system_cxx_lib=%s' % component)
+                self.config.available_features.add(f'with_system_cxx_lib={component}')
 
             # Add available features for more generic versions of the target
             # triple attached to  with_system_cxx_lib.
@@ -515,7 +507,7 @@ class Configuration(object):
                 self.config.available_features.add('libcpp-no-structured-bindings')
 
             if '__cpp_deduction_guides' not in macros or \
-                    intMacroValue(macros['__cpp_deduction_guides']) < 201611:
+                        intMacroValue(macros['__cpp_deduction_guides']) < 201611:
                 self.config.available_features.add('libcpp-no-deduction-guides')
 
         if self.is_windows:
@@ -535,8 +527,8 @@ class Configuration(object):
             if isinstance(macros, dict) and '__GLIBC__' in macros:
                 maj_v, min_v = (macros['__GLIBC__'], macros['__GLIBC_MINOR__'])
                 self.config.available_features.add('glibc')
-                self.config.available_features.add('glibc-%s' % maj_v)
-                self.config.available_features.add('glibc-%s.%s' % (maj_v, min_v))
+                self.config.available_features.add(f'glibc-{maj_v}')
+                self.config.available_features.add(f'glibc-{maj_v}.{min_v}')
 
         libcxx_gdb = self.get_lit_conf('libcxx_gdb')
         if libcxx_gdb and 'NOTFOUND' not in libcxx_gdb:
@@ -545,8 +537,8 @@ class Configuration(object):
 
         # Support Objective-C++ only on MacOS and if the compiler supports it.
         if self.target_info.platform() == "darwin" and \
-           self.target_info.is_host_macosx() and \
-           self.cxx.hasCompileFlag(["-x", "objective-c++", "-fobjc-arc"]):
+               self.target_info.is_host_macosx() and \
+               self.cxx.hasCompileFlag(["-x", "objective-c++", "-fobjc-arc"]):
             self.config.available_features.add("objective-c++")
 
     def configure_compile_flags(self):
@@ -565,8 +557,7 @@ class Configuration(object):
                 if self.cxx.type == 'nvcc':
                     self.cxx.compile_flags += ['-Xcompiler']
                 self.cxx.compile_flags += ['/bigobj']
-        additional_flags = self.get_lit_conf('test_compiler_flags')
-        if additional_flags:
+        if additional_flags := self.get_lit_conf('test_compiler_flags'):
             self.cxx.compile_flags += shlex.split(additional_flags)
         compute_archs = self.get_lit_conf('compute_archs')
         if self.cxx.is_nvrtc is True:
@@ -586,8 +577,7 @@ class Configuration(object):
                 if arch < 90: pre_sm_90 = True
                 arch_flag = '-gencode=arch=compute_{0},code=sm_{0}'.format(arch)
                 self.cxx.compile_flags += [arch_flag]
-            enable_compute_future = self.get_lit_conf('enable_compute_future')
-            if enable_compute_future:
+            if enable_compute_future := self.get_lit_conf('enable_compute_future'):
                 arch_flag = '-gencode=arch=compute_{0},code=compute_{0}'.format(arch)
                 self.cxx.compile_flags += [arch_flag]
             if pre_sm_32:

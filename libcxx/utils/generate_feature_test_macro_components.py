@@ -583,33 +583,22 @@ def get_std_dialects():
   return list(std_dialects)
 
 def get_first_std(d):
-    for s in get_std_dialects():
-        if s in d.keys():
-            return s
-    return None
+  return next((s for s in get_std_dialects() if s in d.keys()), None)
 
 def get_last_std(d):
   rev_dialects = get_std_dialects()
   rev_dialects.reverse()
-  for s in rev_dialects:
-    if s in d.keys():
-      return s
-  return None
+  return next((s for s in rev_dialects if s in d.keys()), None)
 
 def get_std_before(d, std):
   std_dialects = get_std_dialects()
-  candidates = std_dialects[0:std_dialects.index(std)]
+  candidates = std_dialects[:std_dialects.index(std)]
   candidates.reverse()
-  for cand in candidates:
-    if cand in d.keys():
-      return cand
-  return None
+  return next((cand for cand in candidates if cand in d.keys()), None)
 
 def get_value_before(d, std):
   new_std = get_std_before(d, std)
-  if new_std is None:
-    return None
-  return d[new_std]
+  return None if new_std is None else d[new_std]
 
 def get_for_std(d, std):
   # This catches the C++11 case for which there should be no defined feature
@@ -618,12 +607,9 @@ def get_for_std(d, std):
   if std not in std_dialects:
     return None
   # Find the value for the newest C++ dialect between C++14 and std
-  std_list = list(std_dialects[0:std_dialects.index(std)+1])
+  std_list = list(std_dialects[:std_dialects.index(std)+1])
   std_list.reverse()
-  for s in std_list:
-    if s in d.keys():
-      return d[s]
-  return None
+  return next((d[s] for s in std_list if s in d.keys()), None)
 
 
 """
@@ -644,11 +630,11 @@ def produce_macros_definition_for_std(std):
     if get_value_before(tc["values"], std) is not None:
       assert 'depends' not in tc.keys()
       result += "# undef  %s\n" % tc["name"]
-    line = "#%sdefine %s" % ((" " * inner_indent), tc["name"])
+    line = f'#{" " * inner_indent}define {tc["name"]}'
     line += " " * (indent - len(line))
-    line += "%sL" % tc["values"][std]
+    line += f'{tc["values"][std]}L'
     if 'unimplemented' in tc.keys():
-      line = "// " + line
+      line = f"// {line}"
     result += line
     result += "\n"
     if 'depends' in tc.keys():
@@ -669,8 +655,9 @@ def produce_version_synopsis():
       return s
     s += " " * (val - len(s))
     return s
+
   line = indent_to("Macro name", indent) + "Value"
-  line = indent_to(line, header_indent) + "Headers"
+  line = f"{indent_to(line, header_indent)}Headers"
   result += line + "\n"
   for tc in feature_test_macros:
     prev_defined_std = get_last_std(tc["values"])
@@ -680,7 +667,7 @@ def produce_version_synopsis():
     headers.remove("version")
     for chunk in chunks(headers, 3):
       line = indent_to(line, header_indent)
-      chunk = ['<%s>' % header for header in chunk]
+      chunk = [f'<{header}>' for header in chunk]
       line += ' '.join(chunk)
       result += line
       result += "\n"
@@ -796,7 +783,7 @@ def generate_std_test(test_list, std):
   for tc in test_list:
     val = get_for_std(tc["values"], std)
     if val is not None:
-      val = "%sL" % val
+      val = f"{val}L"
     if val is None:
       result += test_types["undefined"].format(name=tc["name"], std_first=get_first_std(tc["values"]))
     elif 'unimplemented' in tc.keys():
@@ -808,20 +795,22 @@ def generate_std_test(test_list, std):
   return result
 
 def generate_synopsis(test_list):
-    max_name_len = max([len(tc["name"]) for tc in test_list])
-    indent = max_name_len + 8
-    def mk_line(prefix, suffix):
-        return "{prefix: <{max_len}}{suffix}\n".format(prefix=prefix, suffix=suffix,
-        max_len=indent)
-    result = ""
-    result += mk_line("/*  Constant", "Value")
-    for tc in test_list:
-        prefix = "    %s" % tc["name"]
-        for std in [s for s in get_std_dialects() if s in tc["values"].keys()]:
-            result += mk_line(prefix, "%sL [%s]" % (tc["values"][std], std.replace("c++", "C++")))
-            prefix = ""
-    result += "*/"
-    return result
+  max_name_len = max(len(tc["name"]) for tc in test_list)
+  indent = max_name_len + 8
+  def mk_line(prefix, suffix):
+      return "{prefix: <{max_len}}{suffix}\n".format(prefix=prefix, suffix=suffix,
+      max_len=indent)
+
+  result = ""
+  result += mk_line("/*  Constant", "Value")
+  for tc in test_list:
+    prefix = f'    {tc["name"]}'
+    for std in [s for s in get_std_dialects() if s in tc["values"].keys()]:
+      result += mk_line(prefix,
+                        f'{tc["values"][std]}L [{std.replace("c++", "C++")}]')
+      prefix = ""
+  result += "*/"
+  return result
 
 def is_threading_header_unsafe_to_include(h):
   # NOTE: "<mutex>" does not blow up when included without threads.
@@ -938,10 +927,10 @@ def get_status_table():
     for tc in feature_test_macros:
       if std not in tc["values"].keys():
         continue
-      value = "``%sL``" % tc["values"][std]
+      value = f'``{tc["values"][std]}L``'
       if 'unimplemented' in tc.keys():
         value = '*unimplemented*'
-      table += [["``%s``" % tc["name"], value]]
+      table += [[f'``{tc["name"]}``', value]]
   return table
 
 def produce_docs():
@@ -978,7 +967,7 @@ Status
 
 def main():
   with tempfile.NamedTemporaryFile(mode='w', prefix='version.', delete=False) as tmp_file:
-    print("producing new <version> header as %s" % tmp_file.name)
+    print(f"producing new <version> header as {tmp_file.name}")
     tmp_file.write(produce_version_header())
   produce_tests()
   produce_docs()

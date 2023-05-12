@@ -34,13 +34,13 @@ def main():
     libcxx = os.path.relpath(args.input, os.path.dirname(args.output))
 
     # Prepare the list of public libraries to link.
-    public_libs = ['-l%s' % l for l in args.libraries]
+    public_libs = [f'-l{l}' for l in args.libraries]
 
     # Generate the linker script contents.
-    contents = "INPUT(%s)" % ' '.join([libcxx] + public_libs)
+    contents = f"INPUT({' '.join([libcxx] + public_libs)})"
 
     if args.dryrun:
-        print("GENERATING SCRIPT: '%s' as file %s" % (contents, args.output))
+        print(f"GENERATING SCRIPT: '{contents}' as file {args.output}")
         return 0
 
     # Remove the existing libc++ symlink if it exists.

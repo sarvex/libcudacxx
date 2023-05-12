@@ -34,7 +34,10 @@ class Configuration(LibcxxConfiguration):
         super(Configuration, self).configure_obj_root()
 
     def has_cpp_feature(self, feature, required_value):
-        return intMacroValue(self.cxx.dumpMacros().get('__cpp_' + feature, '0')) >= required_value
+        return (
+            intMacroValue(self.cxx.dumpMacros().get(f'__cpp_{feature}', '0'))
+            >= required_value
+        )
 
     def configure_features(self):
         super(Configuration, self).configure_features()
@@ -65,21 +68,22 @@ class Configuration(LibcxxConfiguration):
         else:
             self.cxx.compile_flags += ['-nostdinc++']
         if not os.path.isdir(cxx_headers):
-            self.lit_config.fatal("cxx_headers='%s' is not a directory."
-                                  % cxx_headers)
-        self.cxx.compile_flags += ['-I' + cxx_headers]
+            self.lit_config.fatal(f"cxx_headers='{cxx_headers}' is not a directory.")
+        self.cxx.compile_flags += [f'-I{cxx_headers}']
 
         libcxxabi_headers = self.get_lit_conf(
             'libcxxabi_headers',
             os.path.join(self.libcxxabi_src_root, 'include'))
         if not os.path.isdir(libcxxabi_headers):
-            self.lit_config.fatal("libcxxabi_headers='%s' is not a directory."
-                                  % libcxxabi_headers)
-        self.cxx.compile_flags += ['-I' + libcxxabi_headers]
+            self.lit_config.fatal(
+                f"libcxxabi_headers='{libcxxabi_headers}' is not a directory."
+            )
+        self.cxx.compile_flags += [f'-I{libcxxabi_headers}']
 
         libunwind_headers = self.get_lit_conf('libunwind_headers', None)
         if self.get_lit_bool('llvm_unwinder', False) and libunwind_headers:
             if not os.path.isdir(libunwind_headers):
-                self.lit_config.fatal("libunwind_headers='%s' is not a directory."
-                                      % libunwind_headers)
-            self.cxx.compile_flags += ['-I' + libunwind_headers]
+                self.lit_config.fatal(
+                    f"libunwind_headers='{libunwind_headers}' is not a directory."
+                )
+            self.cxx.compile_flags += [f'-I{libunwind_headers}']

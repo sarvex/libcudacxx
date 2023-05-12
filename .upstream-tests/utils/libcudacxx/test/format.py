@@ -54,7 +54,7 @@ class LibcxxTestFormat(object):
         for p in parsers:
             if p.keyword == key:
                 return p
-        assert False and "parser not found"
+        assert False
 
     # TODO: Move this into lit's FileBasedTest
     def getTestsInDirectory(self, testSuite, path_in_suite,
@@ -66,11 +66,11 @@ class LibcxxTestFormat(object):
                 continue
 
             filepath = os.path.join(source_path, filename)
-            if not os.path.isdir(filepath):
-                if any([filename.endswith(ext)
-                        for ext in localConfig.suffixes]):
-                    yield lit.Test.Test(testSuite, path_in_suite + (filename,),
-                                        localConfig)
+            if not os.path.isdir(filepath) and any(
+                filename.endswith(ext) for ext in localConfig.suffixes
+            ):
+                yield lit.Test.Test(testSuite, path_in_suite + (filename,),
+                                    localConfig)
 
     def execute(self, test, lit_config):
         while True:
@@ -174,8 +174,8 @@ class LibcxxTestFormat(object):
                             test_cxx, parsers):
         execDir = os.path.dirname(test.getExecPath())
         source_path = test.getSourcePath()
-        exec_path = tmpBase + '.exe'
-        object_path = tmpBase + '.o'
+        exec_path = f'{tmpBase}.exe'
+        object_path = f'{tmpBase}.o'
         # Create the output directory if it does not already exist.
         libcudacxx.util.mkdir_p(os.path.dirname(tmpBase))
         try:
@@ -190,9 +190,7 @@ class LibcxxTestFormat(object):
                 return lit.Test.Result(lit.Test.FAIL, report)
             # Run the test
             local_cwd = os.path.dirname(source_path)
-            env = None
-            if self.exec_env:
-                env = self.exec_env
+            env = self.exec_env if self.exec_env else None
             # TODO: Only list actually needed files in file_deps.
             # Right now we just mark all of the .dat files in the same
             # directory as dependencies, but it's likely less than that. We
@@ -210,7 +208,7 @@ class LibcxxTestFormat(object):
                 if rc == 0:
                     res = lit.Test.PASS if retry_count == 0 else lit.Test.FLAKYPASS
                     return lit.Test.Result(res, report)
-                elif rc != 0 and retry_count + 1 == max_retry:
+                elif retry_count + 1 == max_retry:
                     report += "Compiled test failed unexpectedly!"
                     return lit.Test.Result(lit.Test.FAIL, report)
 
@@ -229,13 +227,14 @@ class LibcxxTestFormat(object):
         verify_tags = [b'expected-note', b'expected-remark',
                        b'expected-warning', b'expected-error',
                        b'expected-no-diagnostics']
-        use_verify = self.use_verify_for_fail and \
-                     any([tag in contents for tag in verify_tags])
+        use_verify = self.use_verify_for_fail and any(
+            tag in contents for tag in verify_tags
+        )
         # FIXME(EricWF): GCC 5 does not evaluate static assertions that
         # are dependant on a template parameter when '-fsyntax-only' is passed.
         # This is fixed in GCC 6. However for now we only pass "-fsyntax-only"
         # when using Clang.
-        if test_cxx.type != 'gcc' and test_cxx.type != 'nvcc':
+        if test_cxx.type not in ['gcc', 'nvcc']:
             test_cxx.flags += ['-fsyntax-only']
         if use_verify:
             test_cxx.useVerify()
@@ -259,7 +258,6 @@ class LibcxxTestFormat(object):
         report = libcudacxx.util.makeReport(cmd, out, err, rc)
         if check_rc(rc):
             return lit.Test.Result(lit.Test.PASS, report)
-        else:
-            report += ('Expected compilation to fail!\n' if not use_verify else
-                       'Expected compilation using verify to pass!\n')
-            return lit.Test.Result(lit.Test.FAIL, report)
+        report += ('Expected compilation to fail!\n' if not use_verify else
+                   'Expected compilation using verify to pass!\n')
+        return lit.Test.Result(lit.Test.FAIL, report)

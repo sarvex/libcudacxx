@@ -31,7 +31,7 @@ class Configuration(LibcxxConfiguration):
         super(Configuration, self).configure_obj_root()
 
     def has_cpp_feature(self, feature, required_value):
-        return int(self.cxx.dumpMacros().get('__cpp_' + feature, 0)) >= required_value
+        return int(self.cxx.dumpMacros().get(f'__cpp_{feature}', 0)) >= required_value
 
     def configure_features(self):
         super(Configuration, self).configure_features()
@@ -55,9 +55,10 @@ class Configuration(LibcxxConfiguration):
             'libunwind_headers',
             os.path.join(self.libunwind_src_root, 'include'))
         if not os.path.isdir(libunwind_headers):
-            self.lit_config.fatal("libunwind_headers='%s' is not a directory."
-                                  % libunwind_headers)
-        self.cxx.compile_flags += ['-I' + libunwind_headers]
+            self.lit_config.fatal(
+                f"libunwind_headers='{libunwind_headers}' is not a directory."
+            )
+        self.cxx.compile_flags += [f'-I{libunwind_headers}']
 
     def configure_link_flags_cxx_library(self):
         # libunwind tests should not link with libc++

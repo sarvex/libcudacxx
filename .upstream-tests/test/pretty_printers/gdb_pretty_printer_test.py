@@ -56,23 +56,21 @@ class CheckResult(gdb.Command):
 
             if test_fails:
                 global test_failures
-                print("FAIL: " + test_loc.symtab.filename +
-                      ":" + str(test_loc.line))
+                print(f"FAIL: {test_loc.symtab.filename}:{str(test_loc.line)}")
                 print("GDB printed:")
-                print("   " + value)
+                print(f"   {value}")
                 print("Value should match:")
-                print("   " + check_literal)
+                print(f"   {check_literal}")
                 test_failures += 1
             else:
-                print("PASS: " + test_loc.symtab.filename +
-                      ":" + str(test_loc.line))
+                print(f"PASS: {test_loc.symtab.filename}:{str(test_loc.line)}")
 
         except RuntimeError as e:
             # At this point, lots of different things could be wrong, so don't try to
             # recover or figure it out. Don't exit either, because then it's
             # impossible debug the framework itself.
             print("FAIL: Something is wrong in the test framework.")
-            print(str(e))
+            print(e)
             test_failures += 1
 
     def _get_value_string(self, compare_frame, testcase_frame):
@@ -82,7 +80,7 @@ class CheckResult(gdb.Command):
         value_str = str(compare_frame.read_var("value"))
         clean_expression_str = value_str.strip("'\"")
         testcase_frame.select()
-        return gdb.execute("p " + clean_expression_str, to_string=True)
+        return gdb.execute(f"p {clean_expression_str}", to_string=True)
 
 
 def exit_handler(event=None):
@@ -97,7 +95,6 @@ def exit_handler(event=None):
 # Disable terminal paging
 gdb.execute("set height 0")
 gdb.execute("set python print-stack full")
-test_failures = 0
 CheckResult()
 test_bp = gdb.Breakpoint("StopForDebugger")
 test_bp.enabled = True
@@ -106,7 +103,5 @@ test_bp.commands = "print_and_compare\ncontinue"
 # "run" won't return if the program exits; ensure the script regains control.
 gdb.events.exited.connect(exit_handler)
 gdb.execute("run")
-# If the program didn't exit, something went wrong, but we don't
-# know what. Fail on exit.
-test_failures += 1
+test_failures = 0 + 1
 exit_handler(None)
